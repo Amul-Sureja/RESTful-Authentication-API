@@ -302,17 +302,3 @@ All errors follow a consistent format:
 | 404 | Resource not found |
 | 409 | Conflict (e.g. email already exists) |
 | 500 | Internal server error |
-
----
-
-## License
-
-This project is open source and available under the [MIT License](LICENSE).
-
----
-
-## Author
-
-**Your Name**
-- GitHub: [@your-username](https://github.com/your-username)
-- LinkedIn: [your-linkedin](https://linkedin.com/in/your-linkedin)
