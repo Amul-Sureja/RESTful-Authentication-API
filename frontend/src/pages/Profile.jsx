@@ -25,12 +25,12 @@ const Profile = () => {
   }, []);
 
   const fetchProfile = async () => {
-    const token = localStorage.getItem("accessToken");
+    // const token = localStorage.getItem("accessToken");
 
-    if (!token) {
-      navigate("/login");
-      return;
-    }
+    // if (!token) {
+    //   navigate("/login");
+    //   return;
+    // }
 
     try {
       const response = await api.get("/auth/profile");
@@ -47,9 +47,9 @@ const Profile = () => {
 
       setProfileImage(profile.profilePictureURL || "/profile.jpg");
     } catch (err) {
-      if (err.response?.status === 401) {
-        navigate("/login");
-      } else {
+      if (err.response?.status !== 401) {
+      //   navigate("/login");
+      // } else {
         setError("Failed to load profile");
       }
     } finally {

@@ -8,7 +8,7 @@ const Home = () => {
     <div className="home">
       <div className="home-overlay">
         <div className="home-content">
-          <h1>Smart Parking System</h1>
+          <h1>REST APIs Authentication</h1>
           <p>
             Welcome to our secure authentication platform.
             Register a new account or login to continue.
