@@ -299,7 +299,7 @@ export async function login(req, res) {
             .digest("hex");
 
         const expiresAt = new Date(
-            Date.now() + 10 * 60 * 1000
+            Date.now() + 2 * 60 * 1000
         );
 
         await otpModel.create({
@@ -784,32 +784,67 @@ export async function forgotPassword(req, res) {
         const user = await userModel.findOne({ email });
 
         if (!user) {
-            return res.status(404).json({
-                message: "No account found with this email"
+            return res.status(200).json({
+                message: "If this email exists, a reset link has been sent."
             });
         }
 
-        const resetToken = crypto.randomBytes(32).toString("hex");
+        // if (!user) {
+        //     return res.status(404).json({
+        //         message: "No account found with this email"
+        //     });
+        // }
 
+        const ONE_HOUR = 60 * 60 * 1000;
+        const now = Date.now();
+
+        if (
+            user.resetRequestCount >= 3 &&
+            user.resetRequestWindowStart &&
+            now - user.resetRequestWindowStart.getTime() < ONE_HOUR
+        ) {
+            return res.status(429).json({
+                message: "Too many reset requests. Please try again after 1 hour."
+            });
+        }
+
+        if (
+            !user.resetRequestWindowStart ||
+            now - user.resetRequestWindowStart.getTime() >= ONE_HOUR
+        ) {
+            user.resetRequestCount = 0;
+            user.resetRequestWindowStart = new Date();
+        }
+
+        user.resetRequestCount = (user.resetRequestCount || 0) + 1;
+
+        const resetToken = crypto.randomBytes(32).toString("hex");
         const resetTokenHash = crypto.createHash("sha256").update(resetToken).digest("hex");
 
         user.resetPasswordToken = resetTokenHash;
         user.resetPasswordExpires = new Date(
-            Date.now() + 15 * 60 * 1000
+            Date.now() + 1 * 60 * 1000
         );
 
         await user.save();
 
-        const resetUrl =
-            `http://localhost:5173/reset-password/${resetToken}`;
-        console.log(`[RESET LINK] ${resetUrl}`);
+        const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
+        console.log(`[RESET LINK] ${email} → ${resetUrl}`);
+
+        return res.status(200).json({
+            message: "If this email exists, a reset link has been sent."
+        });
+
+        // const resetUrl =
+        //     `http://localhost:5173/reset-password/${resetToken}`;
+        // console.log(`[RESET LINK] ${resetUrl}`);
 
         // Send email here
 
-        return res.status(200).json({
-            message: "Password reset link sent to your email",
-            resetLink: resetUrl
-        });
+        // return res.status(200).json({
+        //     message: "Password reset link sent to your email",
+        //     resetLink: resetUrl
+        // });
     } catch (error) {
         console.error("forgotPassword error:", error);
         return res.status(500).json({ message: error.message || "Forgot password failed" });

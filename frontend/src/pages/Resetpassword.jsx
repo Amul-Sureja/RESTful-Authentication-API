@@ -31,9 +31,10 @@ const ResetPassword = () => {
       const res = await api.post(`/auth/reset-password/${token}`, { newPassword });
       setSuccess(res.data.message || 'Password reset successfully!');
 
+      // Redirect to login after 2.5 seconds
       setTimeout(() => navigate('/login'), 2500);
     } catch (err) {
-      setError(err.response?.data?.message || 'Reset failed. Link may be expired.');
+      setError(err.response?.data?.message || 'Reset failed. The link may be invalid or expired.');
     } finally {
       setLoading(false);
     }
@@ -44,14 +45,47 @@ const ResetPassword = () => {
       <div className="login-card">
         <div style={{ textAlign: 'center', fontSize: '2.5rem', marginBottom: '8px' }}>🔒</div>
         <h1>Reset Password</h1>
-        <p style={{ color: '#6b7280', fontSize: '0.9rem', textAlign: 'center', marginBottom: '24px' }}>
-          Enter your new password below.
+
+        <p style={{
+          color: '#6b7280',
+          fontSize: '0.9rem',
+          textAlign: 'center',
+          marginBottom: '24px',
+          lineHeight: '1.6'
+        }}>
+          Enter your new password below. The link expires in <strong>15 minutes</strong>.
         </p>
 
-        {error && <div className="error-message">{error}</div>}
+        {error && (
+          <div style={{
+            background: '#fef2f2',
+            border: '1px solid #fecaca',
+            color: '#dc2626',
+            padding: '12px',
+            borderRadius: '8px',
+            marginBottom: '16px',
+            fontSize: '0.9rem'
+          }}>
+            {error}
+          </div>
+        )}
+
         {success && (
-          <div className="success-message">
-            {success} Redirecting to login...
+          <div style={{
+            background: '#f0fdf4',
+            border: '1px solid #bbf7d0',
+            color: '#16a34a',
+            padding: '16px',
+            borderRadius: '10px',
+            marginBottom: '16px',
+            fontSize: '0.95rem',
+            fontWeight: '600',
+            textAlign: 'center'
+          }}>
+            ✅ {success}
+            <p style={{ fontWeight: '400', fontSize: '0.85rem', marginTop: '6px', color: '#15803d' }}>
+              Redirecting to login...
+            </p>
           </div>
         )}
 
@@ -66,28 +100,56 @@ const ResetPassword = () => {
                 minLength={8}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
+                style={{ width: '100%' }}
               />
             </div>
 
             <div className="form-group">
-              <label>Confirm Password</label>
+              <label>Confirm New Password</label>
               <input
                 type="password"
                 placeholder="Re-enter new password"
                 required
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
+                style={{ width: '100%' }}
               />
             </div>
 
-            <button type="submit" className="login-btn" disabled={loading}>
+            {/* Password strength hint */}
+            {newPassword.length > 0 && newPassword.length < 8 && (
+              <p style={{ color: '#f59e0b', fontSize: '0.8rem', marginBottom: '12px' }}>
+                ⚠️ Password must be at least 8 characters
+              </p>
+            )}
+
+            {newPassword.length >= 8 && confirmPassword.length > 0 && newPassword !== confirmPassword && (
+              <p style={{ color: '#ef4444', fontSize: '0.8rem', marginBottom: '12px' }}>
+                ✗ Passwords do not match
+              </p>
+            )}
+
+            {newPassword.length >= 8 && confirmPassword.length > 0 && newPassword === confirmPassword && (
+              <p style={{ color: '#16a34a', fontSize: '0.8rem', marginBottom: '12px' }}>
+                ✓ Passwords match
+              </p>
+            )}
+
+            <button
+              type="submit"
+              className="login-btn"
+              disabled={loading}
+              style={{ marginTop: '4px' }}
+            >
               {loading ? 'Resetting...' : 'Reset Password'}
             </button>
           </form>
         )}
 
         <p className="register-link" style={{ marginTop: '20px' }}>
-          <Link to="/login">Back to Login</Link>
+          <Link to="/login" style={{ color: '#2563eb', fontWeight: '600' }}>
+            ← Back to Login
+          </Link>
         </p>
       </div>
     </section>

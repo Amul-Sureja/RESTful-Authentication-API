@@ -103,6 +103,16 @@ const userSchema = new mongoose.Schema({
     resetPasswordExpires: {
         type: Date,
         default: null
+    },
+
+    resetRequestCount: {
+        type: Number,
+        default: 0
+    },
+
+    resetRequestWindowStart: {
+        type: Date,
+        default: null
     }
 
 },
