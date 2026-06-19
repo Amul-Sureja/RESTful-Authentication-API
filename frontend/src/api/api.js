@@ -48,10 +48,10 @@ api.interceptors.response.use(
  * is quietly logged out so they start from a clean state.
  */
 export async function initAuth() {
-  const token = localStorage.getItem('accessToken');
+  // const token = localStorage.getItem('accessToken');
 
   // Nothing stored — user is not logged in, nothing to do.
-  if (!token) return;
+  // if (!token) return;
 
   try {
     // Try to get a fresh access token using the httpOnly refresh cookie.
