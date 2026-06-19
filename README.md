@@ -1,4 +1,4 @@
-# Smart Parking System — Authentication Service
+# Authentication Service
 
 A secure, full-stack authentication system built with **Node.js, Express, MongoDB** (backend) and **React + Vite** (frontend). Supports both **email/password login** and **phone-based OTP login**, JWT access/refresh tokens, multi-device session management, profile picture uploads via ImageKit, and email-based password reset.
 
