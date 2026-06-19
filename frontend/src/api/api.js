@@ -41,4 +41,29 @@ api.interceptors.response.use(
   }
 );
 
+/**
+ * Call this once on app startup.
+ * If an accessToken exists but may be stale, silently refresh it via the
+ * httpOnly refreshToken cookie.  If the cookie is missing/expired the user
+ * is quietly logged out so they start from a clean state.
+ */
+export async function initAuth() {
+  const token = localStorage.getItem('accessToken');
+
+  // Nothing stored — user is not logged in, nothing to do.
+  if (!token) return;
+
+  try {
+    // Try to get a fresh access token using the httpOnly refresh cookie.
+    const res = await axios.get('/api/auth/refreshToken', { withCredentials: true });
+    const { accessToken } = res.data;
+    localStorage.setItem('accessToken', accessToken);
+  } catch {
+    // Refresh cookie is gone / expired — clear local state so the app
+    // doesn't think the user is still logged in.
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('user');
+  }
+}
+
 export default api;
