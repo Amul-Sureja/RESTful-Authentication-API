@@ -532,3 +532,31 @@
 .logout-all-btn:hover {
   background: #6d28d9;
 }
+
+.edit-actions{
+  display:flex;
+  gap:10px;
+}
+
+.edit-actions .save-btn{
+  margin-top:0;
+}
+
+.cancel-btn{
+  width:100%;
+  padding:14px;
+  background:white;
+  color:#64748b;
+  border:1px solid #d1d5db;
+  border-radius:10px;
+  cursor:pointer;
+  font-size:16px;
+  font-weight:600;
+  transition:.2s;
+}
+
+.cancel-btn:hover{
+  background:#f1f5f9;
+  border-color:#9ca3af;
+  color:#1e293b;
+}
