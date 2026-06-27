@@ -261,7 +261,7 @@ const Profile = () => {
               </div>
 
               <div className="profile-actions">
-                <button className="edit-btn" onClick={() => setIsEditing(true)}>✏️ Edit Profile</button>
+                <button className="edit-btn" onClick={() => setIsEditing(true)}>Edit Profile</button>
                 <button className="logout-btn" onClick={handleLogout}>Logout</button>
                 <button className="logout-all-btn" onClick={handleLogoutAll}>Logout All Devices</button>
               </div>
@@ -287,12 +287,11 @@ const Profile = () => {
                 <div className="contact-field">
                   <div className="contact-field-row">
                     <div className="contact-field-value">
-                      <span className="contact-field-icon">✉️</span>
                       <span className="contact-field-text">{user.email}</span>
                     </div>
 
                     {emailVerified ? (
-                      <span className="verified-badge">✔ Verified</span>
+                      <span className="verified-badge">Verified</span>
                     ) : showEmailOTP ? (
                       /* resend button while OTP box is open */
                       <button
@@ -357,12 +356,11 @@ const Profile = () => {
                 <div className="contact-field">
                   <div className="contact-field-row">
                     <div className="contact-field-value">
-                      <span className="contact-field-icon">📱</span>
-                      <span className="contact-field-text">{user.phone || "—"}</span>
+                        <span className="contact-field-text">{user.phone || "—"}</span>
                     </div>
 
                     {phoneVerified ? (
-                      <span className="verified-badge">✔ Verified</span>
+                      <span className="verified-badge">Verified</span>
                     ) : showPhoneOTP ? (
                       <button
                         type="button"
