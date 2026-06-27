@@ -240,7 +240,6 @@ const Login = () => {
               type="button"
               className="google-btn"
               onClick={() => {
-                // Replace this with your Google authentication logic
                 console.log("Google Sign In");
               }}
             >
