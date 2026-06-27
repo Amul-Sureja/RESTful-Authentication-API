@@ -31,24 +31,20 @@ const userSchema = new mongoose.Schema({
 
     phone: {
         type: String,
-        required: true,
         trim: true,
         unique: true,
+        sparse: true,
         match: [/^\d{10}$/, "Please enter a valid 10-digit phone number"]
     },
 
     countryCode: {
         type: String,
-        required: true,
         trim: true,
-        match: [/^\+\d+$/, "Please enter a valid country code"]
     },
 
     password: {
         type: String,
-        required: [true, "Password is required"],
         trim: true,
-        unique: [true, "Password must be unique"],
         minlength: [8, "Password must be at least 8 characters long"],
     },
 
@@ -123,7 +119,19 @@ const userSchema = new mongoose.Schema({
     resetRequestWindowStart: {
         type: Date,
         default: null
-    }
+    },
+
+    googleId: {
+        type: String,
+        unique: true,
+        sparse: true,
+    },
+
+    authProvider: {
+        type: String,
+        enum: ["local", "google"],
+        default: "local",
+    },
 
 },
     {

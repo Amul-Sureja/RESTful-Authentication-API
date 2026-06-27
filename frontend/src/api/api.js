@@ -54,7 +54,6 @@ export async function initAuth() {
   // if (!token) return;
 
   try {
-    // Try to get a fresh access token using the httpOnly refresh cookie.
     const res = await axios.get('/api/auth/refreshToken', { withCredentials: true });
     const { accessToken } = res.data;
     localStorage.setItem('accessToken', accessToken);

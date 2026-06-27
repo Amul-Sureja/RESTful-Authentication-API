@@ -41,7 +41,7 @@ const Profile = () => {
   const [emailOTP, setEmailOTP] = useState("");
   const [emailSending, setEmailSending] = useState(false);
   const [emailVerifying, setEmailVerifying] = useState(false);
-  const [emailMsg, setEmailMsg] = useState({ type: "", text: "" }); // {type:"ok"|"err", text}
+  const [emailMsg, setEmailMsg] = useState({ type: "", text: "" });
   const emailCountdown = useCountdown(60);
 
   /* ── phone verify state ── */
@@ -79,6 +79,7 @@ const Profile = () => {
   };
 
   const handleChange = (e) => setUser({ ...user, [e.target.name]: e.target.value });
+
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) { setImageFile(file); setProfileImage(URL.createObjectURL(file)); }
@@ -230,7 +231,16 @@ const Profile = () => {
 
         {/* ── Avatar ── */}
         <div className="profile-image-wrapper">
-          <img src={profileImage} alt="Profile" className="profile-image" />
+          <img
+            src={profileImage}
+            alt="Profile"
+            className="profile-image"
+            referrerPolicy="no-referrer"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = "/profile.jpg";
+            }}
+          />
           {isEditing && (
             <>
               <label htmlFor="profile-upload" className="camera-icon">📷</label>
@@ -246,16 +256,16 @@ const Profile = () => {
           {/* ══════════════ VIEW MODE ══════════════ */}
           {!isEditing ? (
             <>
-              <h2>{user.username}</h2>
+              <h2>{user.firstName} {user.lastName}</h2>
               <p className="profile-role">{user.email}</p>
 
               <div className="profile-info-grid">
                 <div className="profile-info">
-                  <label>Email Address</label>
+                  <label>EMAIL ADDRESS</label>
                   <p>{user.email}</p>
                 </div>
                 <div className="profile-info">
-                  <label>Phone Number</label>
+                  <label>PHONE NUMBER</label>
                   <p>{user.phone || "—"}</p>
                 </div>
               </div>
@@ -293,7 +303,6 @@ const Profile = () => {
                     {emailVerified ? (
                       <span className="verified-badge">Verified</span>
                     ) : showEmailOTP ? (
-                      /* resend button while OTP box is open */
                       <button
                         type="button"
                         className="verify-btn-inline"
@@ -318,14 +327,12 @@ const Profile = () => {
                     )}
                   </div>
 
-                  {/* per-field message */}
                   {emailMsg.text && (
                     <p className={emailMsg.type === "ok" ? "field-msg field-msg--ok" : "field-msg field-msg--err"}>
                       {emailMsg.text}
                     </p>
                   )}
 
-                  {/* OTP input row */}
                   {!emailVerified && showEmailOTP && (
                     <div className="otp-box">
                       <input
@@ -356,7 +363,7 @@ const Profile = () => {
                 <div className="contact-field">
                   <div className="contact-field-row">
                     <div className="contact-field-value">
-                        <span className="contact-field-text">{user.phone || "—"}</span>
+                      <span className="contact-field-text">{user.phone || "—"}</span>
                     </div>
 
                     {phoneVerified ? (
@@ -386,14 +393,12 @@ const Profile = () => {
                     )}
                   </div>
 
-                  {/* per-field message */}
                   {phoneMsg.text && (
                     <p className={phoneMsg.type === "ok" ? "field-msg field-msg--ok" : "field-msg field-msg--err"}>
                       {phoneMsg.text}
                     </p>
                   )}
 
-                  {/* OTP input row */}
                   {!phoneVerified && showPhoneOTP && (
                     <div className="otp-box">
                       <input

@@ -147,8 +147,8 @@ export async function signupVerifyOtp(req, res) {
             });
         }
 
-        await userModel.findByIdAndUpdate(otpDocument.user, { 
-            isVerified: true, 
+        await userModel.findByIdAndUpdate(otpDocument.user, {
+            isVerified: true,
             verifyBy: email ? "email" : "phone",
             emailVerified: email ? true : false,
             phoneVerified: phone ? true : false
@@ -943,7 +943,7 @@ export async function sendVerifyOtp(req, res) {
             return res.status(400).json({ message: "Phone is already verified" });
         }
 
-        const otp     = generateOtp();
+        const otp = generateOtp();
         const otpHash = crypto.createHash('sha256').update(otp).digest('hex');
         const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 min
 
@@ -951,15 +951,15 @@ export async function sendVerifyOtp(req, res) {
             { user: user._id, otpType: `profile_${type}` },
             {
                 $set: {
-                    email:        user.email,
-                    phone:        user.phone,
-                    countryCode:  user.countryCode || '+91',
+                    email: user.email,
+                    phone: user.phone,
+                    countryCode: user.countryCode || '+91',
                     emailOtpHash: type === 'email' ? otpHash : 'N/A',
                     phoneOtpHash: type === 'phone' ? otpHash : 'N/A',
-                    otpType:      `profile_${type}`,
+                    otpType: `profile_${type}`,
                     expiresAt,
                     failedAttempts: 0,
-                    lockUntil:    null,
+                    lockUntil: null,
                 }
             },
             { upsert: true, new: true }
@@ -1055,5 +1055,51 @@ export async function verifyContactOtp(req, res) {
     } catch (error) {
         console.error("verifyContactOtp error:", error);
         return res.status(500).json({ message: error.message || "OTP verification failed" });
+    }
+}
+
+export async function googleCallback(req, res) {
+    try {
+        const user = req.user;
+
+        const refreshToken = jwt.sign({ id: user._id }, config.JWT_SECRET, { expiresIn: '7d' });
+        const refreshTokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
+
+        const session = await sessionModel.create({
+            user: user._id,
+            refreshTokenHash,
+            ipAddress: req.ip,
+            userAgent: req.headers['user-agent'],
+            login_method: "google"
+        });
+
+        const accessToken = jwt.sign(
+            { id: user._id, sessionId: session._id },
+            config.JWT_SECRET,
+            { expiresIn: '15m' }
+        );
+
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            secure: false,        // false for localhost
+            sameSite: 'lax',      // lax for cross-port redirect
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
+
+        const userData = JSON.stringify({
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            profilePictureURL: user.profilePictureURL,
+        });
+
+        // Redirect to frontend GoogleAuthSuccess page with token
+        res.redirect(
+            `${process.env.FRONTEND_URL}/auth/google/success?token=${accessToken}&user=${encodeURIComponent(userData)}`
+        );
+
+    } catch (err) {
+        console.error("Google callback error:", err);
+        res.redirect(`${process.env.FRONTEND_URL}/login?error=google_auth_failed`);
     }
 }

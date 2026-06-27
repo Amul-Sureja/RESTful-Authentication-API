@@ -240,12 +240,12 @@ const Login = () => {
               type="button"
               className="google-btn"
               onClick={() => {
-                console.log("Google Sign In");
+                window.location.href = "http://localhost:3000/api/auth/google";
               }}
             >
               <img
                 src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
-                alt="Google"
+                className="w-5 h-5" alt="Google"
               />
               <span>Continue in with Google</span>
             </button>

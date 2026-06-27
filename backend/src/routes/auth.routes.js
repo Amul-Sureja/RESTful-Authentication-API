@@ -1,6 +1,7 @@
 import { Router } from "express";
 import * as authController from "../controllers/auth.controller.js";
 import multer from "multer";
+import passport from "../config/passport.js";
 
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -18,27 +19,15 @@ authRouter.get('/logout-all', authController.logoutAll);
 authRouter.post('/resend-otp', authController.resendOtp);
 authRouter.post('/forgot-password', authController.forgotPassword);
 authRouter.post('/reset-password/:token', authController.resetPassword);
-
-
-authRouter.post('/send-verify-otp',    authController.sendVerifyOtp);
+authRouter.post('/send-verify-otp', authController.sendVerifyOtp);
 authRouter.post('/verify-contact-otp', authController.verifyContactOtp);
+authRouter.post('/send-email-otp', (req, res, next) => { req.body = { ...(req.body || {}), type: 'email' }; return authController.sendVerifyOtp(req, res, next); });
+authRouter.post('/verify-email-otp', (req, res, next) => { req.body = { ...(req.body || {}), type: 'email' }; return authController.verifyContactOtp(req, res, next); });
+authRouter.post('/send-phone-otp', (req, res, next) => { req.body = { ...(req.body || {}), type: 'phone' }; return authController.sendVerifyOtp(req, res, next); });
+authRouter.post('/verify-phone-otp', (req, res, next) => { req.body = { ...(req.body || {}), type: 'phone' }; return authController.verifyContactOtp(req, res, next); });
 
-
-authRouter.post('/send-email-otp', (req, res, next) => {
-    req.body = { ...(req.body || {}), type: 'email' };
-    return authController.sendVerifyOtp(req, res, next);
-});
-authRouter.post('/verify-email-otp', (req, res, next) => {
-    req.body = { ...(req.body || {}), type: 'email' };
-    return authController.verifyContactOtp(req, res, next);
-});
-authRouter.post('/send-phone-otp', (req, res, next) => {
-    req.body = { ...(req.body || {}), type: 'phone' };
-    return authController.sendVerifyOtp(req, res, next);
-});
-authRouter.post('/verify-phone-otp', (req, res, next) => {
-    req.body = { ...(req.body || {}), type: 'phone' };
-    return authController.verifyContactOtp(req, res, next);
-});
+// ── Google OAuth routes (must be after authRouter is defined) ──
+authRouter.get('/google', passport.authenticate('google', { scope: ['profile', 'email'], session: false }));
+authRouter.get('/google/callback', passport.authenticate('google', { failureRedirect: '/login', session: false }), authController.googleCallback);
 
 export default authRouter;

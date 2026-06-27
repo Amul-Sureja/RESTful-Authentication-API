@@ -20,7 +20,7 @@ const sessionSchema = new mongoose.Schema({
     },
     login_method: {
         type: String,
-        enum: ["email", "phone"],
+        enum: ["email", "phone", "google"],
         default: "null"
     },
     revoked: {
