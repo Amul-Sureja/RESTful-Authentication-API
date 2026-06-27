@@ -16,7 +16,7 @@ const otpSchema = new mongoose.Schema({
         type: String,
         required: true,
         trim: true,
-        unique: true,
+        // unique: true,
         match: [/^\d{10}$/, "Please enter a valid 10-digit phone number"]
     },
 
@@ -41,6 +41,12 @@ const otpSchema = new mongoose.Schema({
     emailOtpHash: {
         type: String,
         required: [true, "OTP hash is required"]
+    },
+
+    otpType: {
+        type: String,
+        enum: ['signup', 'login', 'profile_email', 'profile_phone'],
+        default: 'signup'
     },
 
     failedAttempts: {

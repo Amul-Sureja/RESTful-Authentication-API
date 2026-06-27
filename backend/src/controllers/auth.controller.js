@@ -700,9 +700,14 @@ export async function resendOtp(req, res) {
         }
 
         if (type === "signup") {
-            if (user.isVerified) {
+            if (email && user.emailVerified) {
                 return res.status(400).json({
-                    message: "Account already verified, please login to your account"
+                    message: "Email already verified"
+                });
+            }
+            if (phone && user.phoneVerified) {
+                return res.status(400).json({
+                    message: "Phone already verified"
                 });
             }
         }
@@ -910,5 +915,145 @@ export async function resetPassword(req, res) {
     } catch (error) {
         console.error("resetPassword error:", error);
         return res.status(500).json({ message: error.message || "Reset password failed" });
+    }
+}
+
+export async function sendVerifyOtp(req, res) {
+    try {
+        const token = req.headers.authorization?.split(' ')[1];
+        if (!token) return res.status(401).json({ message: "Token not found" });
+
+        const decoded = jwt.verify(token, config.JWT_SECRET);
+
+        const session = await sessionModel.findOne({ _id: decoded.sessionId, revoked: false });
+        if (!session) return res.status(401).json({ message: "Session revoked, please login again" });
+
+        const user = await userModel.findById(decoded.id);
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        const { type } = req.body;   // "email" or "phone"
+        if (!type || !['email', 'phone'].includes(type)) {
+            return res.status(400).json({ message: "type must be 'email' or 'phone'" });
+        }
+
+        if (type === 'email' && user.emailVerified) {
+            return res.status(400).json({ message: "Email is already verified" });
+        }
+        if (type === 'phone' && user.phoneVerified) {
+            return res.status(400).json({ message: "Phone is already verified" });
+        }
+
+        const otp     = generateOtp();
+        const otpHash = crypto.createHash('sha256').update(otp).digest('hex');
+        const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 min
+
+        await otpModel.findOneAndUpdate(
+            { user: user._id, otpType: `profile_${type}` },
+            {
+                $set: {
+                    email:        user.email,
+                    phone:        user.phone,
+                    countryCode:  user.countryCode || '+91',
+                    emailOtpHash: type === 'email' ? otpHash : 'N/A',
+                    phoneOtpHash: type === 'phone' ? otpHash : 'N/A',
+                    otpType:      `profile_${type}`,
+                    expiresAt,
+                    failedAttempts: 0,
+                    lockUntil:    null,
+                }
+            },
+            { upsert: true, new: true }
+        );
+
+        console.log(`[PROFILE VERIFY OTP] ${type === 'email' ? user.email : user.phone} → ${otp}`);
+
+        return res.status(200).json({
+            message: type === 'email'
+                ? "OTP sent to your email address"
+                : "OTP sent to your phone number"
+        });
+    } catch (error) {
+        console.error("sendVerifyOtp error:", error);
+        return res.status(500).json({ message: error.message || "Failed to send OTP" });
+    }
+}
+
+export async function verifyContactOtp(req, res) {
+    try {
+        const token = req.headers.authorization?.split(' ')[1];
+        if (!token) return res.status(401).json({ message: "Token not found" });
+
+        const decoded = jwt.verify(token, config.JWT_SECRET);
+
+        const session = await sessionModel.findOne({ _id: decoded.sessionId, revoked: false });
+        if (!session) return res.status(401).json({ message: "Session revoked, please login again" });
+
+        const user = await userModel.findById(decoded.id);
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        const { type, otp } = req.body;
+        if (!type || !['email', 'phone'].includes(type)) {
+            return res.status(400).json({ message: "type must be 'email' or 'phone'" });
+        }
+        if (!otp) return res.status(400).json({ message: "OTP is required" });
+
+        const otpHash = crypto.createHash('sha256').update(otp.toString()).digest('hex');
+
+        const otpDoc = await otpModel.findOne({ user: user._id, otpType: `profile_${type}` });
+
+        if (!otpDoc) {
+            return res.status(400).json({ message: "OTP not found. Please request a new one." });
+        }
+
+        if (otpDoc.lockUntil && otpDoc.lockUntil > new Date()) {
+            const remaining = Math.ceil((otpDoc.lockUntil - new Date()) / 60000);
+            return res.status(403).json({ message: `Too many attempts. Try again after ${remaining} minute(s).` });
+        }
+
+        if (otpDoc.expiresAt < new Date()) {
+            await otpModel.deleteOne({ _id: otpDoc._id });
+            return res.status(400).json({ message: "OTP has expired. Please request a new one." });
+        }
+
+        const expectedHash = type === 'email' ? otpDoc.emailOtpHash : otpDoc.phoneOtpHash;
+        if (expectedHash !== otpHash) {
+            const MAX_ATTEMPTS = 5;
+            otpDoc.failedAttempts = (otpDoc.failedAttempts || 0) + 1;
+            const attemptsLeft = MAX_ATTEMPTS - otpDoc.failedAttempts;
+
+            if (attemptsLeft <= 0) {
+                otpDoc.lockUntil = new Date(Date.now() + 15 * 60 * 1000);
+                await otpDoc.save();
+                return res.status(403).json({ message: "Too many failed attempts. OTP locked for 15 minutes." });
+            }
+
+            await otpDoc.save();
+            return res.status(400).json({
+                message: `Invalid OTP. ${attemptsLeft} attempt(s) remaining.`,
+                attemptsLeft,
+            });
+        }
+
+        const updateFields = {};
+        if (type === 'email') {
+            updateFields.emailVerified = true;
+            updateFields.verifyBy = 'email';
+        } else {
+            updateFields.phoneVerified = true;
+            updateFields.verifyBy = 'phone';
+        }
+
+        await userModel.findByIdAndUpdate(user._id, updateFields);
+
+        await otpModel.deleteOne({ _id: otpDoc._id });
+
+        return res.status(200).json({
+            message: type === 'email'
+                ? "Email verified successfully"
+                : "Phone number verified successfully"
+        });
+    } catch (error) {
+        console.error("verifyContactOtp error:", error);
+        return res.status(500).json({ message: error.message || "OTP verification failed" });
     }
 }

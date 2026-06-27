@@ -19,4 +19,26 @@ authRouter.post('/resend-otp', authController.resendOtp);
 authRouter.post('/forgot-password', authController.forgotPassword);
 authRouter.post('/reset-password/:token', authController.resetPassword);
 
+
+authRouter.post('/send-verify-otp',    authController.sendVerifyOtp);
+authRouter.post('/verify-contact-otp', authController.verifyContactOtp);
+
+
+authRouter.post('/send-email-otp', (req, res, next) => {
+    req.body = { ...(req.body || {}), type: 'email' };
+    return authController.sendVerifyOtp(req, res, next);
+});
+authRouter.post('/verify-email-otp', (req, res, next) => {
+    req.body = { ...(req.body || {}), type: 'email' };
+    return authController.verifyContactOtp(req, res, next);
+});
+authRouter.post('/send-phone-otp', (req, res, next) => {
+    req.body = { ...(req.body || {}), type: 'phone' };
+    return authController.sendVerifyOtp(req, res, next);
+});
+authRouter.post('/verify-phone-otp', (req, res, next) => {
+    req.body = { ...(req.body || {}), type: 'phone' };
+    return authController.verifyContactOtp(req, res, next);
+});
+
 export default authRouter;
