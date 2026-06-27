@@ -147,7 +147,12 @@ export async function signupVerifyOtp(req, res) {
             });
         }
 
-        await userModel.findByIdAndUpdate(otpDocument.user, { isVerified: true, verifyBy: email ? "email" : "phone" });
+        await userModel.findByIdAndUpdate(otpDocument.user, { 
+            isVerified: true, 
+            verifyBy: email ? "email" : "phone",
+            emailVerified: email ? true : false,
+            phoneVerified: phone ? true : false
+        });
 
         await otpModel.deleteMany({ user: otpDocument.user });
 
@@ -520,6 +525,8 @@ export async function getProfile(req, res) {
                 isVerified: user.isVerified,
                 status: user.status,
                 lockUtil: user.lockUtil,
+                emailVerified: user.emailVerified,
+                phoneVerified: user.phoneVerified,
             }
         })
     } catch (error) {
