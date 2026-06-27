@@ -27,7 +27,7 @@ authRouter.post('/send-phone-otp', (req, res, next) => { req.body = { ...(req.bo
 authRouter.post('/verify-phone-otp', (req, res, next) => { req.body = { ...(req.body || {}), type: 'phone' }; return authController.verifyContactOtp(req, res, next); });
 
 // ── Google OAuth routes (must be after authRouter is defined) ──
-authRouter.get('/google', passport.authenticate('google', { scope: ['profile', 'email'], session: false }));
+authRouter.get('/google', passport.authenticate('google', { scope: ['profile', 'email'], session: false, prompt: 'select_account' }));
 authRouter.get('/google/callback', passport.authenticate('google', { failureRedirect: '/login', session: false }), authController.googleCallback);
 
 export default authRouter;

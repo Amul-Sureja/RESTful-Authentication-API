@@ -28,7 +28,8 @@ const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState({
-    firstName: "", lastName: "", username: "", email: "", phone: "", profilePictureURL: "",
+    firstName: "", lastName: "", username: "", email: "",
+    phone: "", countryCode: "+91", profilePictureURL: "",
   });
   const [profileImage, setProfileImage] = useState("/profile.jpg");
   const [imageFile, setImageFile] = useState(null);
@@ -53,6 +54,9 @@ const Profile = () => {
   const [phoneMsg, setPhoneMsg] = useState({ type: "", text: "" });
   const phoneCountdown = useCountdown(60);
 
+  // track if user had no phone when edit started
+  const [hadNoPhone, setHadNoPhone] = useState(false);
+
   useEffect(() => { fetchProfile(); }, []);
 
   /* ────────────────── fetch ────────────────── */
@@ -66,6 +70,7 @@ const Profile = () => {
         username: p.username || "",
         email: p.email || "",
         phone: p.phone || "",
+        countryCode: p.countryCode || "+91",
         profilePictureURL: p.profilePictureURL || "",
       });
       setProfileImage(p.profilePictureURL || "/profile.jpg");
@@ -125,6 +130,29 @@ const Profile = () => {
   /* ────────────────── phone OTP ────────────────── */
   const sendPhoneOTP = async () => {
     setPhoneMsg({ type: "", text: "" });
+
+    // If user had no phone, save it first before sending OTP
+    if (hadNoPhone) {
+      if (!user.phone || user.phone.length !== 10) {
+        setPhoneMsg({ type: "err", text: "Please enter a valid 10-digit phone number first." });
+        return;
+      }
+      // Save phone to DB first
+      try {
+        const formData = new FormData();
+        formData.append("firstName", user.firstName);
+        formData.append("lastName", user.lastName);
+        formData.append("phone", user.phone);
+        formData.append("countryCode", user.countryCode || "+91");
+        await api.patch("/auth/update-profile", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      } catch (err) {
+        setPhoneMsg({ type: "err", text: err.response?.data?.message || "Failed to save phone number" });
+        return;
+      }
+    }
+
     setPhoneSending(true);
     try {
       await api.post("/auth/send-phone-otp");
@@ -166,21 +194,33 @@ const Profile = () => {
       const formData = new FormData();
       formData.append("firstName", user.firstName);
       formData.append("lastName", user.lastName);
+
+      // Send phone only if user just added it (was empty before)
+      if (hadNoPhone && user.phone) {
+        formData.append("phone", user.phone);
+        formData.append("countryCode", user.countryCode || "+91");
+      }
+
       if (imageFile) formData.append("image", imageFile);
 
       const { data } = await api.patch("/auth/update-profile", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+
       const u = data.user;
       setUser((prev) => ({
         ...prev,
         firstName: u.firstName,
         lastName: u.lastName,
         username: u.username,
+        phone: u.phone || prev.phone,
+        countryCode: u.countryCode || prev.countryCode,
         profilePictureURL: u.profilePictureURL,
       }));
+
       if (u.profilePictureURL) setProfileImage(u.profilePictureURL);
       setIsEditing(false);
+      setHadNoPhone(false);
       setImageFile(null);
       setSuccess("Profile updated successfully!");
     } catch (err) {
@@ -191,9 +231,11 @@ const Profile = () => {
   const cancelEdit = () => {
     setIsEditing(false);
     setImageFile(null);
+    setHadNoPhone(false);
     setError(""); setSuccess("");
     setShowEmailOTP(false); setEmailOTP(""); setEmailMsg({ type: "", text: "" });
     setShowPhoneOTP(false); setPhoneOTP(""); setPhoneMsg({ type: "", text: "" });
+    fetchProfile(); // restore original values
   };
 
   const handleLogout = async () => {
@@ -271,7 +313,12 @@ const Profile = () => {
               </div>
 
               <div className="profile-actions">
-                <button className="edit-btn" onClick={() => setIsEditing(true)}>Edit Profile</button>
+                <button className="edit-btn" onClick={() => {
+                  setHadNoPhone(!user.phone); // track if phone was empty
+                  setIsEditing(true);
+                }}>
+                  Edit Profile
+                </button>
                 <button className="logout-btn" onClick={handleLogout}>Logout</button>
                 <button className="logout-all-btn" onClick={handleLogoutAll}>Logout All Devices</button>
               </div>
@@ -309,19 +356,10 @@ const Profile = () => {
                         onClick={sendEmailOTP}
                         disabled={emailSending || emailCountdown.left > 0}
                       >
-                        {emailSending
-                          ? "Sending…"
-                          : emailCountdown.left > 0
-                            ? `Resend (${emailCountdown.left}s)`
-                            : "Resend"}
+                        {emailSending ? "Sending…" : emailCountdown.left > 0 ? `Resend (${emailCountdown.left}s)` : "Resend"}
                       </button>
                     ) : (
-                      <button
-                        type="button"
-                        className="verify-btn-inline"
-                        onClick={sendEmailOTP}
-                        disabled={emailSending}
-                      >
+                      <button type="button" className="verify-btn-inline" onClick={sendEmailOTP} disabled={emailSending}>
                         {emailSending ? "Sending…" : "Verify"}
                       </button>
                     )}
@@ -336,20 +374,12 @@ const Profile = () => {
                   {!emailVerified && showEmailOTP && (
                     <div className="otp-box">
                       <input
-                        type="text"
-                        inputMode="numeric"
-                        placeholder="Enter 6-digit OTP"
-                        value={emailOTP}
-                        maxLength={6}
+                        type="text" inputMode="numeric" placeholder="Enter 6-digit OTP"
+                        value={emailOTP} maxLength={6} autoFocus
                         onChange={(e) => setEmailOTP(e.target.value.replace(/\D/g, ""))}
-                        autoFocus
                       />
-                      <button
-                        type="button"
-                        className="otp-submit-btn"
-                        onClick={verifyEmailOTP}
-                        disabled={emailVerifying || emailOTP.length !== 6}
-                      >
+                      <button type="button" className="otp-submit-btn" onClick={verifyEmailOTP}
+                        disabled={emailVerifying || emailOTP.length !== 6}>
                         {emailVerifying ? "Verifying…" : "Submit"}
                       </button>
                     </div>
@@ -363,7 +393,21 @@ const Profile = () => {
                 <div className="contact-field">
                   <div className="contact-field-row">
                     <div className="contact-field-value">
-                      <span className="contact-field-text">{user.phone || "—"}</span>
+
+                      {/* Show input box if no phone, show text if phone exists */}
+                      {hadNoPhone ? (
+                        <input
+                          type="text"
+                          name="phone"
+                          value={user.phone}
+                          onChange={(e) => setUser({ ...user, phone: e.target.value.replace(/\D/g, "") })}
+                          placeholder="Enter 10-digit phone number"
+                          maxLength={10}
+                          style={{ border: "none", outline: "none", width: "100%", background: "transparent" }}
+                        />
+                      ) : (
+                        <span className="contact-field-text">{user.phone}</span>
+                      )}
                     </div>
 
                     {phoneVerified ? (
@@ -375,20 +419,11 @@ const Profile = () => {
                         onClick={sendPhoneOTP}
                         disabled={phoneSending || phoneCountdown.left > 0}
                       >
-                        {phoneSending
-                          ? "Sending…"
-                          : phoneCountdown.left > 0
-                            ? `Resend (${phoneCountdown.left}s)`
-                            : "Resend"}
+                        {phoneSending ? "Sending…" : phoneCountdown.left > 0 ? `Resend (${phoneCountdown.left}s)` : "Resend"}
                       </button>
                     ) : (
-                      <button
-                        type="button"
-                        className="verify-btn-inline"
-                        onClick={sendPhoneOTP}
-                        disabled={phoneSending}
-                      >
-                        {phoneSending ? "Sending…" : "Verify"}
+                      <button type="button" className="verify-btn-inline" onClick={sendPhoneOTP} disabled={phoneSending}>
+                        {phoneSending ? "Sending…" : hadNoPhone ? "Add & Verify" : "Verify"}
                       </button>
                     )}
                   </div>
@@ -402,19 +437,12 @@ const Profile = () => {
                   {!phoneVerified && showPhoneOTP && (
                     <div className="otp-box">
                       <input
-                        type="text"
-                        inputMode="numeric"
-                        placeholder="Enter 6-digit OTP"
-                        value={phoneOTP}
-                        maxLength={6}
+                        type="text" inputMode="numeric" placeholder="Enter 6-digit OTP"
+                        value={phoneOTP} maxLength={6}
                         onChange={(e) => setPhoneOTP(e.target.value.replace(/\D/g, ""))}
                       />
-                      <button
-                        type="button"
-                        className="otp-submit-btn"
-                        onClick={verifyPhoneOTP}
-                        disabled={phoneVerifying || phoneOTP.length !== 6}
-                      >
+                      <button type="button" className="otp-submit-btn" onClick={verifyPhoneOTP}
+                        disabled={phoneVerifying || phoneOTP.length !== 6}>
                         {phoneVerifying ? "Verifying…" : "Submit"}
                       </button>
                     </div>

@@ -527,6 +527,7 @@ export async function getProfile(req, res) {
                 lockUtil: user.lockUtil,
                 emailVerified: user.emailVerified,
                 phoneVerified: user.phoneVerified,
+                authProvider: user.authProvider
             }
         })
     } catch (error) {
@@ -559,7 +560,8 @@ export async function updateProfile(req, res) {
             firstName,
             lastName,
             email,
-            phone
+            phone,
+            countryCode
         } = req.body;
 
         // Email cannot be changed
@@ -569,11 +571,19 @@ export async function updateProfile(req, res) {
             });
         }
 
-        // Phone cannot be changed
-        if (phone && phone !== user.phone) {
-            return res.status(400).json({
-                message: "Phone number cannot be changed"
-            });
+        // Phone cannot be changed once set, but can be added if empty
+        if (phone && user.phone && phone !== user.phone) {
+            return res.status(400).json({ message: "Phone number cannot be changed" });
+        }
+
+        // Allow adding phone if user doesn't have one (Google users)
+        if (phone && !user.phone) {
+            const phoneExists = await userModel.findOne({ phone, _id: { $ne: user._id } });
+            if (phoneExists) {
+                return res.status(400).json({ message: "This phone number is already registered" });
+            }
+            user.phone = phone;
+            user.countryCode = countryCode || '+91';
         }
 
         // Update name fields
@@ -602,6 +612,7 @@ export async function updateProfile(req, res) {
                 lastName: user.lastName,
                 email: user.email,
                 phone: user.phone,
+                countryCode: user.countryCode,
                 profilePictureURL: user.profilePictureURL,
                 profilePictureName: user.profilePictureName,
             }
@@ -939,6 +950,12 @@ export async function sendVerifyOtp(req, res) {
         if (type === 'email' && user.emailVerified) {
             return res.status(400).json({ message: "Email is already verified" });
         }
+
+        // For phone OTP, user must have a phone number saved first
+        if (type === 'phone' && !user.phone) {
+            return res.status(400).json({ message: "Please save your phone number first before verifying" });
+        }
+
         if (type === 'phone' && user.phoneVerified) {
             return res.status(400).json({ message: "Phone is already verified" });
         }
