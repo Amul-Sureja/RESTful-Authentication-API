@@ -1,4 +1,4 @@
-/* home  */
+/* ----------------------------------------------------------------------home-------------------------------------------------------------  */
 
 *{
   margin:0;
@@ -80,7 +80,7 @@
   transform:translateY(-3px);
 }
 
-/* register  */
+/* ----------------------------------------------------------------------register-------------------------------------------------------------  */
 .register{
   min-height:100vh;
   display:flex;
@@ -167,126 +167,272 @@
   font-weight:600;
 }
 
-/* login */
-.login{
-  min-height:100vh;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  background:linear-gradient(135deg,#0f172a,#2563eb);
-  padding:20px;
+/* ----------------------------------------------------------------------login-------------------------------------------------------------  */
+.login {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #0f172a, #2563eb);
+  padding: 20px;
 }
 
-.login-card{
-  width:100%;
-  max-width:450px;
-  background:white;
-  padding:35px;
-  border-radius:20px;
-  box-shadow:0 10px 30px rgba(0,0,0,.25);
+.login-card {
+  width: 100%;
+  max-width: 450px;
+  background: #fff;
+  padding: 35px;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
 }
 
-.login-card h1{
-  text-align:center;
-  margin-bottom:25px;
+.login-card h1 {
+  text-align: center;
+  margin-bottom: 25px;
+  color: #111827;
 }
 
-.tabs{
-  display:flex;
-  margin-bottom:20px;
-  border-radius:10px;
-  overflow:hidden;
+.tabs {
+  display: flex;
+  margin-bottom: 20px;
+  border-radius: 10px;
+  overflow: hidden;
 }
 
-.tabs button{
-  flex:1;
-  padding:12px;
-  border:none;
-  cursor:pointer;
-  background:#f1f5f9;
+.tabs button {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  cursor: pointer;
+  background: #f1f5f9;
+  font-size: 15px;
+  transition: 0.3s;
 }
 
-.tabs button.active{
-  background:#2563eb;
-  color:white;
+.tabs button.active {
+  background: #2563eb;
+  color: #fff;
 }
 
-.form-group{
-  display:flex;
-  flex-direction:column;
-  margin-bottom:15px;
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
 }
 
-.form-group label{
-  margin-bottom:6px;
-  font-weight:600;
+.form-group label {
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: #374151;
 }
 
-.form-group input{
-  padding:12px;
-  border:1px solid #d1d5db;
-  border-radius:10px;
+.form-group input {
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 15px;
+  outline: none;
+  transition: 0.2s;
 }
 
-.phone-group{
-  display:flex;
-  gap:10px;
+.form-group input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
-.code{
-  width:30%;
+.phone-group {
+  display: flex;
+  gap: 10px;
 }
 
-.number{
-  width:70%;
+.code {
+  width: 30%;
 }
 
-.otp-box{
-  display:flex;
-  gap:10px;
-  margin-bottom:15px;
+.number {
+  width: 70%;
 }
 
-.otp-box input{
-  flex:1;
-  padding:12px;
-  border:1px solid #d1d5db;
-  border-radius:10px;
+.otp-box {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
 }
 
-.otp-btn{
-  background:#16a34a;
-  color:white;
-  border:none;
-  padding:12px 18px;
-  border-radius:10px;
-  cursor:pointer;
+.otp-box input {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
 }
 
-.login-btn{
-  width:100%;
-  padding:14px;
-  border:none;
-  background:#2563eb;
-  color:white;
-  border-radius:10px;
-  cursor:pointer;
-  font-size:16px;
-  font-weight:600;
+.otp-btn {
+  background: #16a34a;
+  color: white;
+  border: none;
+  padding: 12px 18px;
+  border-radius: 10px;
+  cursor: pointer;
 }
 
-.register-link{
-  text-align:center;
-  margin-top:20px;
+.login-btn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  background: #2563eb;
+  color: white;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  transition: 0.3s;
 }
 
-.register-link span{
-  color:#2563eb;
-  font-weight:600;
-  cursor:pointer;
+.login-btn:hover {
+  background: #1d4ed8;
 }
 
-/* profile  */
+.login-btn:disabled {
+  background: #93c5fd;
+  cursor: not-allowed;
+}
+
+.forgot-link {
+  text-align: right;
+  margin-bottom: 18px;
+}
+
+.forgot-link a {
+  color: #2563eb;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.forgot-link a:hover {
+  text-decoration: underline;
+}
+
+.error-message {
+  margin-bottom: 18px;
+  padding: 12px;
+  background: #fee2e2;
+  color: #b91c1c;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.register-link {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.register-link a {
+  color: #2563eb;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.register-link a:hover {
+  text-decoration: underline;
+}
+
+/* ===========================
+   Divider
+=========================== */
+
+.divider {
+  display: flex;
+  align-items: center;
+  margin: 22px 0;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #d1d5db;
+}
+
+.divider span {
+  margin: 0 15px;
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* ===========================
+   Google Button
+=========================== */
+
+.google-btn {
+  width: 100%;
+  height: 48px;
+  background: #ffffff;
+  border: 1px solid #dadce0;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  font-size: 16px;
+  font-weight: 500;
+  color: #3c4043;
+}
+
+.google-btn:hover {
+  background: #f8f9fa;
+  border-color: #c7c7c7;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.google-btn:active {
+  transform: scale(0.98);
+}
+
+.google-btn:focus {
+  outline: none;
+  border-color: #4285f4;
+  box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.2);
+}
+
+.google-btn img {
+  width: 22px;
+  height: 22px;
+}
+
+.google-btn span {
+  font-weight: 500;
+  color: #3c4043;
+}
+
+/* ===========================
+   Responsive
+=========================== */
+
+@media (max-width: 480px) {
+  .login-card {
+    padding: 25px;
+  }
+
+  .phone-group {
+    flex-direction: column;
+  }
+
+  .code,
+  .number {
+    width: 100%;
+  }
+
+  .login-btn,
+  .google-btn {
+    font-size: 15px;
+  }
+}
+
+/* ----------------------------------------------------------------------profile-------------------------------------------------------------  */
 .profile{
   min-height:100vh;
   display:flex;
@@ -394,7 +540,7 @@
   background:#1d4ed8;
 }
 
-/* otp */
+/* ----------------------------------------------------------------------otp-------------------------------------------------------------  */
 .verify-container{
   min-height:100vh;
   display:flex;

@@ -231,6 +231,25 @@ const Login = () => {
             <button type="submit" className="login-btn" disabled={loading}>
               {loading ? "Logging in..." : "Login"}
             </button>
+
+            <div className="divider">
+              <span>OR</span>
+            </div>
+
+            <button
+              type="button"
+              className="google-btn"
+              onClick={() => {
+                // Replace this with your Google authentication logic
+                console.log("Google Sign In");
+              }}
+            >
+              <img
+                src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+                alt="Google"
+              />
+              <span>Continue in with Google</span>
+            </button>
           </form>
         ) : (
           <form onSubmit={handleOtpLogin}>
