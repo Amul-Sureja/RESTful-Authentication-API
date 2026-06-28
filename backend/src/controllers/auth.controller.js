@@ -905,12 +905,14 @@ export async function resetPassword(req, res) {
         //     user.password
         // );
 
-        const isSamePassword = await bcrypt.compare(newPassword, user.password);
+        if (user.password) {
+            const isSamePassword = await bcrypt.compare(newPassword, user.password);
 
-        if (isSamePassword) {
-            return res.status(400).json({
-                message: "This password is already used. Please choose a new password.",
-            });
+            if (isSamePassword) {
+                return res.status(400).json({
+                    message: "This password is already used. Please choose a new password.",
+                });
+            }
         }
 
         user.password = await bcrypt.hash(newPassword, 10);
