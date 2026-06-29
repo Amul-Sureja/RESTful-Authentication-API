@@ -984,7 +984,7 @@ export async function sendVerifyOtp(req, res) {
             { upsert: true, new: true }
         );
 
-        console.log(`[PROFILE VERIFY OTP] ${type === 'email' ? user.email : user.phone} → ${otp}`);
+        console.log(`${type === 'email' ? '[EMAIL]' : '[PHONE]'} [VERIFY OTP] ${type === 'email' ? user.email : user.phone} → ${otp}`);
 
         return res.status(200).json({
             message: type === 'email'

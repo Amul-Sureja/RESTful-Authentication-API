@@ -20,17 +20,14 @@ passport.use(new GoogleStrategy({
         let user = await userModel.findOne({ googleId: profile.id });
 
         if (!user) {
-            // Check if email already exists (local account)
             user = await userModel.findOne({ email });
 
             if (user) {
-                // Link Google to existing local account + update info
                 user.googleId = profile.id;
                 user.authProvider = "google";
-                user.profilePictureURL = profilePictureURL;  // update picture
+                user.profilePictureURL = profilePictureURL; 
                 await user.save();
             } else {
-                // Create brand new Google user
                 user = await userModel.create({
                     googleId: profile.id,
                     firstName,
@@ -46,14 +43,12 @@ passport.use(new GoogleStrategy({
                 });
             }
         } else {
-            // User already exists — update name & profile picture on every login
             user.firstName = firstName;
             user.lastName = lastName;
             user.name = `${firstName} ${lastName}`.trim();
             user.profilePictureURL = profilePictureURL;
             await user.save();
         }
-
         return done(null, user);
     } catch (err) {
         return done(err, null);
